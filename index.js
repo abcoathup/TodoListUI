@@ -12,8 +12,8 @@ var contractABI = require("./TodoList.json").abiDefinition
 var todo = require('./templates/todo.js')
 
 app.use(function (state, emitter) {
-    state.toDoCount = 0;
-    state.todoList = [{value: 'fooey'}];
+    state.todoCount = 0;
+    state.todoList = [];
 
     emitter.on('DOMContentLoaded', async () => {
         // Check for web3 instance. Create if necessary.
@@ -31,8 +31,7 @@ app.use(function (state, emitter) {
 
         // Set up contract interface
         state.contractInstance = new web3.eth.Contract(contractABI, "0x04D45b51fe4f00b4478F8b0719Fa779f14c8A194")
-        // Get todo count from contract
-        state.todoCount = await getTodoCount(state);
+        await setTodoState(state);
         emitter.emit('render')
 
         // Unlock account
@@ -55,15 +54,16 @@ const main = (state, emit) => {
           Todo: ${state.todoCount}
         </p>
 
-        <br><br>
-        ${state.todoList.map(todo)}
-        <br><br>
-
         <form onsubmit="${addTodo}" method="POST">
             <label for="message">New todo:</label>
             <input type="text" id="newTodo" name="newTodo">
             <input type="submit" value="Add">
         </form>
+
+        <br><br>
+        ${state.todoList.map(todo)}
+        <br><br>
+
       </div>`
 
     // Add Todo
@@ -75,7 +75,7 @@ const main = (state, emit) => {
         .on('receipt', async receipt => {
             console.log("Success!", receipt)
             state.todoCount = await getTodoCount(state)
-            var value = await getLastTodo(state);
+            var value = await getTodoValue(state, state.todoCount);
             var obj = { value: value }
             state.todoList.push(obj)
             emit('render')
@@ -98,10 +98,30 @@ function getTodoCount(state) {
     });
 }
 
-function getLastTodo(state) {
+function getTodoValue(state, todoId) {
     return new Promise(function (resolve, reject) {
-        state.contractInstance.methods.getTodoValue(state.todoCount).call().then(function (response) {
+        state.contractInstance.methods.getTodoValue(todoId).call().then(function (response) {
             resolve(response);
         });
     });
+}
+
+function getTodoDone(state, todoId) {
+    return new Promise(function (resolve, reject) {
+        state.contractInstance.methods.getTodoDone(todoId).call().then(function (response) {
+            resolve(response);
+        });
+    });
+}
+
+async function setTodoState(state) {
+    state.todoCount = await getTodoCount(state);
+    state.todoList = [];
+
+    for (var todoId = 1; todoId <= state.todoCount; todoId++) {
+        var value = await getTodoValue(state, todoId);
+        var done = await getTodoDone(state, todoId);
+        var obj = { todoId: todoId, value: value, done: done }
+        state.todoList.push(obj)
+    }
 }

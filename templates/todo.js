@@ -1,10 +1,12 @@
 var html = require('choo/html')
 
 module.exports = function (todo) {
-  var value = todo.value
+  var todoId = todo.todoId;
+  var value = todo.value;
+  var done = todo.done;
 
   // create html template
   return html`
-  <p>${value}</p>\
+  <div>${todoId} ${value} ${done}</div>\
   `
 }
