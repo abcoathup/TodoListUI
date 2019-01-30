@@ -5,8 +5,12 @@ module.exports = function (todo) {
   var value = todo.value;
   var done = todo.done;
 
+  var message = ((done == true) ? 'Edit' : 'Done');
+
   // create html template
-  return html`
-  <div>${todoId} ${value} ${done}</div>\
+    return html`
+    <div>
+    <button onclick="myFunction()">${message}</button> ${value}
+    </div>
   `
 }

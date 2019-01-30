@@ -9,7 +9,7 @@ var app = choo()
 var contractABI = require("./TodoList.json").abiDefinition
 
 // import template
-var todo = require('./templates/todo.js')
+var main = require('./templates/main.js')
 
 app.use(function (state, emitter) {
     state.todoCount = 0;
@@ -45,31 +45,8 @@ app.use(function (state, emitter) {
             }
         });
     })
-})
 
-const main = (state, emit) => {
-    return html `
-      <div>
-        <p>
-          Todo: ${state.todoCount}
-        </p>
-
-        <form onsubmit="${addTodo}" method="POST">
-            <label for="message">New todo:</label>
-            <input type="text" id="newTodo" name="newTodo">
-            <input type="submit" value="Add">
-        </form>
-
-        <br><br>
-        ${state.todoList.map(todo)}
-        <br><br>
-
-      </div>`
-
-    // Add Todo
-    function addTodo(e) {
-        e.preventDefault()
-        var data = new FormData(e.currentTarget)
+    emitter.on('addTodo', async (data) => {
         state.contractInstance.methods.addTodo(data.get("newTodo")).send({ from: web3.eth.defaultAccount })
         .on('error', console.error)
         .on('receipt', async receipt => {
@@ -78,10 +55,10 @@ const main = (state, emit) => {
             var value = await getTodoValue(state, state.todoCount);
             var obj = { value: value }
             state.todoList.push(obj)
-            emit('render')
+            emitter.emit('render')
         })
-    }
-}
+    })
+})
 
 // create a route
 app.route('/', main)
