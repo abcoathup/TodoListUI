@@ -52,16 +52,16 @@ app.use(function (state, emitter) {
         .on('receipt', async receipt => {
             console.log("Success!", receipt)
             state.todoCount = await getTodoCount(state)
-            var value = await getTodoValue(state, state.todoCount);
-            var obj = { todoId: state.todoCount, value: value, done: false }
+            var todo = await getTodo(state, state.todoCount);
+            var obj = { todoId: state.todoCount, value: todo.value, done: todo.done }
             state.todoList.push(obj)
             emitter.emit('render')
         })
     })
 
     emitter.on('doneTodo', async (todoId) => {
-        var oldDone = await getTodoDone(state, todoId);
-        var newDone = !oldDone;
+        var todo = await getTodo(state, todoId);
+        var newDone = !todo.done;
         state.contractInstance.methods.setTodoDone(todoId, newDone).send({ from: web3.eth.defaultAccount })
         .on('error', console.error)
         .on('receipt', async receipt => {
@@ -88,17 +88,9 @@ function getTodoCount(state) {
     });
 }
 
-function getTodoValue(state, todoId) {
+function getTodo(state, todoId) {
     return new Promise(function (resolve, reject) {
-        state.contractInstance.methods.getTodoValue(todoId).call().then(function (response) {
-            resolve(response);
-        });
-    });
-}
-
-function getTodoDone(state, todoId) {
-    return new Promise(function (resolve, reject) {
-        state.contractInstance.methods.getTodoDone(todoId).call().then(function (response) {
+        state.contractInstance.methods.todoList(todoId).call().then(function (response) {
             resolve(response);
         });
     });
@@ -109,9 +101,8 @@ async function setTodoState(state) {
     state.todoList = [];
 
     for (var todoId = 1; todoId <= state.todoCount; todoId++) {
-        var value = await getTodoValue(state, todoId);
-        var done = await getTodoDone(state, todoId);
-        var obj = { todoId: todoId, value: value, done: done }
+        var todo = await getTodo(state, todoId);
+        var obj = { todoId: todoId, value: todo.value, done: todo.done }
         state.todoList.push(obj)
     }
 }
