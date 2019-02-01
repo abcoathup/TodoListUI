@@ -8,23 +8,21 @@ var todoTemplate = require('./todo.js')
 module.exports = function (state, emit) {
     return html `
     <div>
-      <p>
-        Todo: ${state.todoCount}
-      </p>
-
+      
       <form onsubmit="${add}" method="POST">
           <label for="message">New todo:</label>
           <input type="text" id="newTodo" name="newTodo">
           <input type="submit" value="Add">
       </form>
+      <hr />
       <div class="controls">
-        <ul class="filters">
-            <li><a href="/">all</a></li>
-            <li><a href="/done/true">done</a></li>
-            <li><a href="/done/false">outstanding</a></li>
-      </ul>
-        </div>
-      <br><br>
+        <div class="filters">
+            <span><a href="/">all</a></span>
+            <span><a href="/done/true">done</a></span>
+            <span><a href="/done/false">outstanding</a></span>
+      </div>
+      </div>
+        <br />
       ${state.todoList.map(todoMap)}
       <br><br>
 

@@ -5,10 +5,9 @@ module.exports = function (doneTodo, todo) {
   var value = todo.value;
   var done = todo.done;
 
-  var message = ((done == true) ? 'Edit' : 'Done');
-
   // create html template
   return html`
-    <div><button id="${todoId}" onclick="${doneTodo}">${message}</button> ${value}</div>
+    <div><input type="checkbox" id="${todoId}" onclick="${doneTodo}" checked="${done}"> ${value}</div>
+
   `
 }
