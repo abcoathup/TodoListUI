@@ -53,8 +53,20 @@ app.use(function (state, emitter) {
             console.log("Success!", receipt)
             state.todoCount = await getTodoCount(state)
             var value = await getTodoValue(state, state.todoCount);
-            var obj = { value: value }
+            var obj = { todoId: state.todoCount, value: value, done: false }
             state.todoList.push(obj)
+            emitter.emit('render')
+        })
+    })
+
+    emitter.on('doneTodo', async (todoId) => {
+        var oldDone = await getTodoDone(state, todoId);
+        var newDone = !oldDone;
+        state.contractInstance.methods.setTodoDone(todoId, newDone).send({ from: web3.eth.defaultAccount })
+        .on('error', console.error)
+        .on('receipt', async receipt => {
+            console.log("Success!", receipt)
+            state.todoList[todoId -1].done = newDone;
             emitter.emit('render')
         })
     })
@@ -62,6 +74,7 @@ app.use(function (state, emitter) {
 
 // create a route
 app.route('/', main)
+app.route('/done/:done', main)
 
 // start app
 app.mount('div')

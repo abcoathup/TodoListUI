@@ -1,6 +1,6 @@
 var html = require('choo/html')
 
-module.exports = function (todo) {
+module.exports = function (doneTodo, todo) {
   var todoId = todo.todoId;
   var value = todo.value;
   var done = todo.done;
@@ -8,9 +8,7 @@ module.exports = function (todo) {
   var message = ((done == true) ? 'Edit' : 'Done');
 
   // create html template
-    return html`
-    <div>
-    <button onclick="myFunction()">${message}</button> ${value}
-    </div>
+  return html`
+    <div><button id="${todoId}" onclick="${doneTodo}">${message}</button> ${value}</div>
   `
 }
